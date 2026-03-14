@@ -1,28 +1,61 @@
-import fs from "fs/promises";
-import path from "path";
+import { NextResponse } from "next/server"
 
-const filePath = path.join(process.cwd(), "data/projects.json");
-
-export const dynamic = "force-dynamic";
+const repo = process.env.GITHUB_REPO
+const token = process.env.GITHUB_TOKEN
+const path = "data/projects.json"
 
 export async function GET() {
-  try {
-    const content = await fs.readFile(filePath, "utf-8");
-    return new Response(content, { status: 200, headers: { "Content-Type": "application/json" } });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Unable to read projects" }), { status: 500 });
-  }
+  const res = await fetch(
+    `https://api.github.com/repos/${repo}/contents/${path}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  const file = await res.json()
+
+  const content = JSON.parse(
+    Buffer.from(file.content, "base64").toString()
+  )
+
+  return NextResponse.json(content)
 }
 
-export async function POST(req) {
-  try {
-    const body = await req.json();
-    if (!Array.isArray(body)) {
-      return new Response(JSON.stringify({ error: "Payload must be an array" }), { status: 400 });
+export async function POST(req: Request) {
+  const projects = await req.json()
+
+  const fileRes = await fetch(
+    `https://api.github.com/repos/${repo}/contents/${path}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
-    await fs.writeFile(filePath, JSON.stringify(body, null, 2), "utf-8");
-    return new Response(JSON.stringify({ message: "Saved" }), { status: 200 });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Unable to save projects" }), { status: 500 });
-  }
+  )
+
+  const file = await fileRes.json()
+
+  const updatedContent = Buffer.from(
+    JSON.stringify(projects, null, 2)
+  ).toString("base64")
+
+  await fetch(
+    `https://api.github.com/repos/${repo}/contents/${path}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: "update projects from admin panel",
+        content: updatedContent,
+        sha: file.sha,
+      }),
+    }
+  )
+
+  return NextResponse.json({ success: true })
 }
