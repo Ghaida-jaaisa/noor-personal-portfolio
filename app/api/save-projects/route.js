@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 
 const repo = process.env.GITHUB_REPO
@@ -23,7 +24,7 @@ export async function GET() {
   return NextResponse.json(content)
 }
 
-export async function POST(req: Request) {
+export async function POST(req) {
   const projects = await req.json()
 
   const fileRes = await fetch(
