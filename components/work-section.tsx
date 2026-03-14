@@ -6,8 +6,8 @@ import { Heart, MessageCircle, Send, Bookmark } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 type PortfolioItem = {
-  title: string
-  description: string
+  title?: string
+  description?: string
   image: string
   category?: string
 }
