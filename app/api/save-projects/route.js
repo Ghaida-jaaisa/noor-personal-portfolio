@@ -1,62 +1,61 @@
-export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
+
+export const dynamic = "force-dynamic"
 
 const repo = process.env.GITHUB_REPO
 const token = process.env.GITHUB_TOKEN
-const path = "data/projects.json"
-
-export async function GET() {
-  const res = await fetch(
-    `https://api.github.com/repos/${repo}/contents/${path}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  )
-
-  const file = await res.json()
-
-  const content = JSON.parse(
-    Buffer.from(file.content, "base64").toString()
-  )
-
-  return NextResponse.json(content)
-}
+const filePath = "data/projects.json"
 
 export async function POST(req) {
-  const projects = await req.json()
+  try {
+    const projects = await req.json()
 
-  const fileRes = await fetch(
-    `https://api.github.com/repos/${repo}/contents/${path}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    // get current file
+    const fileRes = await fetch(
+      `https://api.github.com/repos/${repo}/contents/${filePath}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    const file = await fileRes.json()
+
+    if (!file.sha) {
+      return NextResponse.json({
+        error: "Unable to read file from GitHub",
+        github: file,
+      })
     }
-  )
 
-  const file = await fileRes.json()
+    const updatedContent = Buffer.from(
+      JSON.stringify(projects, null, 2)
+    ).toString("base64")
 
-  const updatedContent = Buffer.from(
-    JSON.stringify(projects, null, 2)
-  ).toString("base64")
+    const updateRes = await fetch(
+      `https://api.github.com/repos/${repo}/contents/${filePath}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: "update projects from admin panel",
+          content: updatedContent,
+          sha: file.sha,
+        }),
+      }
+    )
 
-  await fetch(
-    `https://api.github.com/repos/${repo}/contents/${path}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: "update projects from admin panel",
-        content: updatedContent,
-        sha: file.sha,
-      }),
-    }
-  )
+    const result = await updateRes.json()
 
-  return NextResponse.json({ success: true })
+    return NextResponse.json(result)
+
+  } catch (error) {
+    return NextResponse.json({
+      error: error.message,
+    })
+  }
 }
