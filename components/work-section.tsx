@@ -104,7 +104,7 @@ export async function WorkSection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {portfolioItems.map((item, idx) => (
-            <WorkCard key={idx} image={item.image} alt={item.title} description={item.description} category={item.category} />
+            <WorkCard key={idx} image={item.image} alt={item.title ?? "Image"} description={item.description ?? ""} category={item.category} />
           ))}
           {!portfolioItems.length && (
             <p className="col-span-full text-center text-muted-foreground">No projects found. أضف أول مشروع من صفحة الإدارة.</p>

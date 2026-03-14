@@ -112,14 +112,14 @@ export function HeroSection() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="aspect-[4/3] rounded-xl overflow-hidden border border-primary/20">
                     <img 
-                      src="/portfolio/work-2.jpg" 
+                      src="/portfolio/7.jpeg" 
                       alt="Recent work 1" 
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <div className="aspect-[4/3] rounded-xl overflow-hidden border border-primary/20">
                     <img 
-                      src="/portfolio/work-3.jpg" 
+                      src="/portfolio/8.jpeg" 
                       alt="Recent work 2" 
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
