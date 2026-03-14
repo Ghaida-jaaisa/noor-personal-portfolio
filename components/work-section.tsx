@@ -1,52 +1,31 @@
-"use client"
-
 import Image from "next/image"
+import fs from "fs/promises"
+import path from "path"
 import { Heart, MessageCircle, Send, Bookmark } from "lucide-react"
 
-const portfolioItems = [
-  {
-    id: 1,
-    image: "/portfolio/work-2.jpg",
-    alt: "Coffee branding design",
-  },
-  {
-    id: 2,
-    image: "/portfolio/work-3.jpg",
-    alt: "Smoothie product design",
-  },
-  {
-    id: 3,
-    image: "/portfolio/work-4.jpg",
-    alt: "Restaurant menu design",
-  },
-  {
-    id: 4,
-    image: "/portfolio/work-5.jpg",
-    alt: "Healthcare branding",
-  },
-  {
-    id: 5,
-    image: "/portfolio/work-6.jpg",
-    alt: "Creative social media design",
-  },
-  {
-    id: 6,
-    image: "/portfolio/work-7.jpg",
-    alt: "Fashion branding",
-  },
-  {
-    id: 7,
-    image: "/portfolio/work-8.jpg",
-    alt: "Tech startup branding",
-  },
-  {
-    id: 8,
-    image: "/portfolio/work-2.jpg",
-    alt: "Brand identity design",
-  },
-]
+export const dynamic = "force-dynamic"
 
-function WorkCard({ image, alt }: { image: string; alt: string }) {
+type PortfolioItem = {
+  title: string
+  description: string
+  image: string
+  category?: string
+}
+
+async function loadProjects(): Promise<PortfolioItem[]> {
+  const filePath = path.join(process.cwd(), "data/projects.json")
+  try {
+    const content = await fs.readFile(filePath, "utf-8")
+    const parsed = JSON.parse(content)
+    if (Array.isArray(parsed)) return parsed
+    return []
+  } catch (error) {
+    console.error("Unable to read projects.json", error)
+    return []
+  }
+}
+
+function WorkCard({ image, alt, description, category }: { image: string; alt: string; description: string; category?: string }) {
   return (
     <div className="group bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/5">
       {/* Card Header */}
@@ -81,28 +60,36 @@ function WorkCard({ image, alt }: { image: string; alt: string }) {
         />
       </div>
 
-      {/* Card Footer - Social Actions */}
-      <div className="p-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button className="text-red-500 hover:scale-110 transition-transform" aria-label="Like">
-            <Heart className="w-5 h-5 fill-current" />
-          </button>
-          <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Comment">
-            <MessageCircle className="w-5 h-5" />
-          </button>
-          <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Share">
-            <Send className="w-5 h-5" />
-          </button>
+      <div className="p-4 space-y-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{category || ""}</span>
+          <div className="flex items-center gap-3">
+            <button className="text-red-500 hover:scale-110 transition-transform" aria-label="Like">
+              <Heart className="w-4 h-4 fill-current" />
+            </button>
+            <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Comment">
+              <MessageCircle className="w-4 h-4" />
+            </button>
+            <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Share">
+              <Send className="w-4 h-4" />
+            </button>
+            <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Save">
+              <Bookmark className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <button className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Save">
-          <Bookmark className="w-5 h-5" />
-        </button>
+        <div>
+          <h3 className="text-base font-semibold mb-1">{alt}</h3>
+          <p className="text-sm text-muted-foreground leading-snug">{description}</p>
+        </div>
       </div>
     </div>
   )
 }
 
-export function WorkSection() {
+export async function WorkSection() {
+  const portfolioItems = await loadProjects()
+
   return (
     <section id="work" className="py-24">
       <div className="container mx-auto px-6">
@@ -116,9 +103,12 @@ export function WorkSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {portfolioItems.map((item) => (
-            <WorkCard key={item.id} image={item.image} alt={item.alt} />
+          {portfolioItems.map((item, idx) => (
+            <WorkCard key={idx} image={item.image} alt={item.title} description={item.description} category={item.category} />
           ))}
+          {!portfolioItems.length && (
+            <p className="col-span-full text-center text-muted-foreground">No projects found. أضف أول مشروع من صفحة الإدارة.</p>
+          )}
         </div>
       </div>
     </section>
