@@ -42,7 +42,7 @@ export async function POST(req) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: "update projects from admin panel",
+          message: "feat: add new portfolio project - automatic commit ",
           content: updatedContent,
           sha: file.sha,
         }),
