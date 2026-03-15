@@ -285,7 +285,3 @@ Notes:
 - Built with Next.js and React
 - UI primitives inspired by modern Radix + Tailwind patterns
 - Icons by Lucide
-
----
-
-If you want, this README can be extended further with screenshots, architecture diagrams, and contribution guidelines.
