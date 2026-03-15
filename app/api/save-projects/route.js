@@ -29,8 +29,17 @@ export async function POST(req) {
       })
     }
 
+    // Decode existing projects from GitHub
+    const decodedContent = Buffer.from(file.content, "base64").toString("utf-8")
+    const existingProjects = JSON.parse(decodedContent)
+
+    // Concatenate new project with existing projects
+    const allProjects = Array.isArray(existingProjects) 
+      ? [...existingProjects, ...(Array.isArray(projects) ? projects : [projects])]
+      : Array.isArray(projects) ? projects : [projects]
+
     const updatedContent = Buffer.from(
-      JSON.stringify(projects, null, 2)
+      JSON.stringify(allProjects, null, 2)
     ).toString("base64")
 
     const updateRes = await fetch(
