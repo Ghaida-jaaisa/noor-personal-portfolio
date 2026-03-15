@@ -6,6 +6,35 @@ const repo = process.env.GITHUB_REPO
 const token = process.env.GITHUB_TOKEN
 const filePath = "data/projects.json"
 
+export async function GET() {
+  try {
+    // GET: Fetch existing projects from GitHub
+    const fileRes = await fetch(
+      `https://api.github.com/repos/${repo}/contents/${filePath}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    const file = await fileRes.json()
+
+    if (!file.content) {
+      return NextResponse.json([])
+    }
+
+    // Decode and return the projects
+    const decodedContent = Buffer.from(file.content, "base64").toString("utf-8")
+    const projects = JSON.parse(decodedContent)
+    
+    return NextResponse.json(Array.isArray(projects) ? projects : [])
+  } catch (error) {
+    console.error("Error fetching projects:", error)
+    return NextResponse.json([])
+  }
+}
+
 export async function POST(req) {
   try {
     const projects = await req.json()
@@ -29,17 +58,9 @@ export async function POST(req) {
       })
     }
 
-    // Decode existing projects from GitHub
-    const decodedContent = Buffer.from(file.content, "base64").toString("utf-8")
-    const existingProjects = JSON.parse(decodedContent)
-
-    // Concatenate new project with existing projects
-    const allProjects = Array.isArray(existingProjects) 
-      ? [...existingProjects, ...(Array.isArray(projects) ? projects : [projects])]
-      : Array.isArray(projects) ? projects : [projects]
-
+    // POST: Save the complete projects array (already contains old + new projects)
     const updatedContent = Buffer.from(
-      JSON.stringify(allProjects, null, 2)
+      JSON.stringify(projects, null, 2)
     ).toString("base64")
 
     const updateRes = await fetch(
