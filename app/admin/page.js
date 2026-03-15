@@ -64,13 +64,15 @@ export default function Admin() {
         image: imageValue,
       };
 
+      // Update local state to show immediately
       const updated = [...projects, newProject];
       setProjects(updated);
 
+      // Send ONLY the new project to API - API will concatenate with existing
       await fetch("/api/save-projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify(newProject),
       });
 
       setTitle("");

@@ -37,9 +37,9 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    const projects = await req.json()
+    const incomingProjects = await req.json()
 
-    // get current file
+    // Fetch current file to get existing projects
     const fileRes = await fetch(
       `https://api.github.com/repos/${repo}/contents/${filePath}`,
       {
@@ -58,9 +58,24 @@ export async function POST(req) {
       })
     }
 
-    // POST: Save the complete projects array (already contains old + new projects)
+    // Decode existing projects
+    let existingProjects = []
+    try {
+      const decodedContent = Buffer.from(file.content, "base64").toString("utf-8")
+      existingProjects = JSON.parse(decodedContent)
+      if (!Array.isArray(existingProjects)) existingProjects = []
+    } catch (e) {
+      console.log("Could not parse existing projects, starting fresh")
+      existingProjects = []
+    }
+
+    // Merge: Append the new project to existing ones
+    const mergedProjects = Array.isArray(incomingProjects) 
+      ? [...existingProjects, ...incomingProjects]
+      : [...existingProjects, incomingProjects]
+
     const updatedContent = Buffer.from(
-      JSON.stringify(projects, null, 2)
+      JSON.stringify(mergedProjects, null, 2)
     ).toString("base64")
 
     const updateRes = await fetch(
